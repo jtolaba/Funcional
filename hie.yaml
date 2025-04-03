@@ -1,0 +1,7 @@
+cradle:
+  stack:
+    - path: "./src"
+      component: "Funcional1-Ejercicios:lib"
+
+    - path: "./test"
+      component: "Funcional1-Ejercicios:test:Funcional1-Ejercicios-test"
