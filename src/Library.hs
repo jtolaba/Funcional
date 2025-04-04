@@ -1,33 +1,23 @@
 module Library where
-import PdePreludat
 import Data.Ratio (numerator)
+import PdePreludat
 
-doble :: Number -> Number
+
 doble numero = numero + numero
-
-esMultiploDeTres :: Number -> Bool
 esMultiploDeTres x = mod x 3 == 0
-
-esMultiploDe :: Number -> Number ->Bool
 esMultiploDe numero divisor = mod numero divisor == 0
+cubo = (^3)
+potencia =(^)
+area = (*)
+esBisiesto año = año `esMultiploDe` 400 || (año `esMultiploDe` 4 && not (año `esMultiploDe` 100))
 
-cubo :: Number -> Number
-cubo x = x * x * x
+celsiusToFahr grados = (grados * 9 / 5) + 32
 
-area :: Number ->Number -> Number
-area base altura = base * altura
+fahrToCelsius grados = (grados - 32) * 5 / 9
 
-esBisiesto :: Number -> Bool
-esBisiesto año = año `esMultiploDe` 400 || (año `esMultiploDe` 4 && not(año `esMultiploDe` 100))
-
-celsiusToFahr :: Number -> Number
-celsiusToFahr grados = (grados * 9/5 ) + 32
-
-fahrToCelsius :: Number -> Number
-fahrToCelsius grados= (grados - 32) * 5/9
-
-haceFrio :: Number -> Bool
 haceFrio x = fahrToCelsius x < 8
 
-mcd ::Number-> Number ->  Number
-mcd a b = (a * b)/ gcd a b
+mcd a b = (a * b) / gcd a b
+
+dispersion d1 d2 d3 = max (max d1 d2) d3 - min (min d1 d2) d3
+
