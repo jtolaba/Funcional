@@ -50,4 +50,4 @@ dispersion d1 d2 d3 = max d1 (max d2 d3) - min d1 (min d2 d3)
 --- CASOS DE PRUEBA/ REALIZAR TEST ---
 diasParejos = dispersion > 30
 diasLocos   = dispersion > 100
-diasNormales= (diasParejos || diasNormales) == false
+diasNormales= (diasParejos || diasNormales) != true
