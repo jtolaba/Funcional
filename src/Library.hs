@@ -77,10 +77,12 @@ sirvePino :: Number -> Bool
 sirvePino = pesoUtil . pesoPino
 
 --- Ejercicio 12 --
+esCuadradoAux :: Number -> Number -> Number -> Bool
 esCuadradoAux objetivo suma paso
   | suma == objetivo = True
   | suma > objetivo = False
   | otherwise = esCuadradoAux objetivo (suma + (2*paso+1)) (paso +1)
 
+esCuadradoPerfecto :: Number -> Bool
 esCuadradoPerfecto n = esCuadradoAux n 0 0
 
