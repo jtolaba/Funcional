@@ -4,9 +4,11 @@ import Data.Ratio (numerator)
 import GHC.Base (List)
 import PdePreludat
 import Test.Hspec (xcontext)
+import GHC.Num (Num)
+
 
 doble :: Number -> Number
-doble = (/ 3)
+doble = (*2)
 
 esMultiploDeTres :: Number -> Bool
 esMultiploDeTres x = mod x 3 == 0
@@ -39,15 +41,16 @@ mcd :: Number -> Number -> Number
 mcd a b = (a * b) / gcd a b
 
 dispersion :: Number -> Number -> Number -> Number
-dispersion d1 d2 d3 = max d1 (max d2 d3) - min d1 (min d2 d3)
+dispersion d1 d2 d3 = max (max d1 d2) d3 - min (min d1 d2)d3
 
---clasificarDias :: Number -> String
---clasificarDias x
---  | x > 30    = "diasParejos"
---  | x > 100   = "diasLocos"
---  | otherwise = "diasNormales"
+dispersion2 :: Number -> Number -> Number -> Number
+dispersion2 d1 d2 d3 = (max d1 . max d2 $d3 )- (min d1 . min d2 $d3)
 
---- CASOS DE PRUEBA/ REALIZAR TEST ---
-diasParejos = dispersion > 30
-diasLocos   = dispersion > 100
-diasNormales= (diasParejos || diasNormales) != true
+diasParejos :: Number -> Number -> Number -> Bool
+diasParejos d1 d2 d3 = (<30) (dispersion d1 d2 d3)
+
+diasLocos :: Number -> Number -> Number -> Bool
+diasLocos d1 d2 d3 = (>100) (dispersion d1 d2 d3)
+
+diasNormales :: Number -> Number -> Number -> Bool
+diasNormales d1 d2 d3 = not ((diasLocos d1 d2 d3) || (diasParejos d1 d2 d3))
