@@ -18,5 +18,4 @@ correrTests = hspec $ do
     
     it "pesoPino -1" $ do
       pesoPino (-1) `shouldBe` 0
-    
-    
+
