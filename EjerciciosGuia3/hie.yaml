@@ -1,0 +1,7 @@
+cradle:
+  stack:
+    - path: "./src"
+      component: "EjerciciosGuia3:lib"
+
+    - path: "./test"
+      component: "EjerciciosGuia3:test:EjerciciosGuia3-test"

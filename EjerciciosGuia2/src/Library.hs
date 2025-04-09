@@ -1,4 +1,3 @@
-{-# OPTIONS_GHC -Wno-overlapping-patterns #-}
 module Library where
 import PdePreludat
 import Test.Hspec (xcontext)
