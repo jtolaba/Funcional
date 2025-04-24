@@ -1,0 +1,7 @@
+cradle:
+  stack:
+    - path: "./src"
+      component: "TPisteando:lib"
+
+    - path: "./test"
+      component: "TPisteando:test:TPisteando-test"
