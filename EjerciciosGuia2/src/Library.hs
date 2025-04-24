@@ -1,6 +1,5 @@
 module Library where
 import PdePreludat
-import Test.Hspec (xcontext)
 
 doble :: Number -> Number
 doble numero = numero + numero
