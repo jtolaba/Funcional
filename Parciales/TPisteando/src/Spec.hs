@@ -189,7 +189,7 @@ correrTests = hspec $ do
     let peugeotModificado2 = Auto "Peugeot" "504" (0, 0) 65 49 ["“El rey del desierto"]
     let listaDeAutos = [ferrari ,peugeotModificado, peugeotModificado2] --
     it "El nivelDeJoyes del grupo [ferrari, peugeot, peugeot2] es de 3" $ do
-      nivelDeJoyez esUnaJoya listaDeAutos `shouldBe` 3.0
+      nivelDeJoyez listaDeAutos `shouldBe` 3.0
 
 -- 5.B Funcionalidad: sonParaEntendidos
   describe "Funcionalidad: sonParaEntendidos" $ do

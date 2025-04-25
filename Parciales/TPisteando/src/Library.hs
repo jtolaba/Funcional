@@ -188,12 +188,13 @@ aumentarDesgaste tramo auto = auto {desgaste = desgastePorTramo}
 -- Punto 5a
 -- esUnaJoya :: Auto -> Bool
 
-nivelDeJoyez :: (Auto -> Bool) -> [Auto] -> Number
-nivelDeJoyez _ [] = 0
-nivelDeJoyez esJoya (auto:autos)
-  | esJoya auto && tiempoDeCarrera auto < 50 = 1 + nivelDeJoyez esUnaJoya autos
-  | esJoya auto                              = 2 + nivelDeJoyez esUnaJoya autos
-  | otherwise                                = nivelDeJoyez esUnaJoya autos
+nivelDeJoyez :: [Auto] -> Number
+nivelDeJoyez [] = 0
+nivelDeJoyez (auto:autos)
+  | esUnaJoya auto && tiempoDeCarrera auto < 50 = 2 + nivelDeJoyez autos
+  | esUnaJoya auto                              = 1 + nivelDeJoyez autos
+  | otherwise                                   = nivelDeJoyez autos
+
 
 -- Punto 5b
 
