@@ -195,7 +195,7 @@ nivelDeJoyez (auto:autos)
   | esUnaJoya auto                              = 1 + nivelDeJoyez autos
   | otherwise                                   = nivelDeJoyez autos
 
-
+--ola
 -- Punto 5b
 
 sonParaEntendidos :: [Auto] -> Bool
