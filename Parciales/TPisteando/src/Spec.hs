@@ -145,9 +145,9 @@ correrTests = hspec $ do
 -- 4.B Funcionalidad: atravesarRecta
   describe "Funcionalidad: AtravesarRecta" $ do
     it "Ferrari al transitar tramoRectoClassic, Tiene un desgaste de chasis de 7.15" $ do
-      desgasteChasis (transitarTramo tramoRectroClassic ferrari)  `shouldBe` 7.15
+      desgasteChasis (transitarTramo tramoRetroClassic ferrari)  `shouldBe` 7.15
     it "Ferrari al transitar tramoRectoClassic, tiempo en pista 11" $ do
-      tiempoDeCarrera (transitarTramo tramoRectroClassic ferrari)  `shouldBe` 11
+      tiempoDeCarrera (transitarTramo tramoRetroClassic ferrari)  `shouldBe` 11
     it "Ferrari al transitar tramito, Tiene un desgaste de chasis de 2.6" $ do
       desgasteChasis (transitarTramo tramito ferrari)  `shouldBe` 2.6
     it "Ferrari al transitar tramito, tiempo en pista 4" $ do

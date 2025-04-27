@@ -33,7 +33,6 @@ type DiametroRulo = Number
 
 type PrecioBaseEntrada = Number
 
-data Tramo = Curva Angulo Longitud | Recta Longitud | ZigZag CambiosDireccion | Rulo DiametroRulo deriving (Show)
 
 data Auto = Auto
   { marca :: Marca,
@@ -152,38 +151,36 @@ llevarAlDesarmadero auto marca modelo = auto {marca = marca, modelo = modelo, ap
 -- Punto 4a
 --- Modelo de tramos ---
 curvaPeligrosa = Curva 60 300
+
 curvaTranca = Curva 110 550
-tramoRectroClassic = Recta 715
+
+tramoRetroClassic = Recta 715
+
 tramito = Recta 260
+
 zigZagLoco = ZigZag 5
+
 casiCurva = ZigZag 1
+
 ruloClasico = Rulo 13
 deseoDeMuerte = Rulo 26
 
-transitarTramo :: Tramo -> Auto -> Auto
-transitarTramo tramo = aumentarDesgaste tramo . sumarTiempoEnPista tramo
+data Tramo = Curva Angulo Longitud | Recta Longitud | ZigZag CambiosDireccion | Rulo DiametroRulo deriving (Show)
 
-sumarTiempoEnPista :: Tramo -> Auto -> Auto
-sumarTiempoEnPista tramo auto = auto {tiempoDeCarrera = tiempoActual + tiempoDeTramo}
-  where
-    tiempoActual = tiempoDeCarrera auto
-    tiempoDeTramo = case tramo of
-      Curva angulo longitud -> longitud / (velocidadMaxima auto / 2)
-      Recta longitud -> longitud / velocidadMaxima auto
-      ZigZag cambios -> cambios * 3
-      Rulo diametro -> 5 * diametro / velocidadMaxima auto
+transitarTramo :: Tramo -> Auto -> Auto
+transitarTramo tramo = aumentarTiempoEnPista tramo . aumentarDesgaste tramo
+
+aumentarTiempoEnPista :: Tramo -> Auto -> Auto
+aumentarTiempoEnPista (Curva angulo longitud) auto = auto {tiempoDeCarrera = tiempoDeCarrera auto + (longitud / (velocidadMaxima auto / 2))}
+aumentarTiempoEnPista (Recta longitud) auto = auto {tiempoDeCarrera = tiempoDeCarrera auto + (longitud / velocidadMaxima auto)}
+aumentarTiempoEnPista (ZigZag cambios) auto = auto {tiempoDeCarrera = tiempoDeCarrera auto + (cambios * 3)}
+aumentarTiempoEnPista (Rulo diametro) auto = auto {tiempoDeCarrera = tiempoDeCarrera auto + ((5 * diametro) / velocidadMaxima auto)}
 
 aumentarDesgaste :: Tramo -> Auto -> Auto
-aumentarDesgaste tramo auto = auto {desgaste = desgastePorTramo}
-  where
-    desgasteRuedaActual = desgasteRuedas auto
-    desgasteChasisActual = desgasteChasis auto
-    desgastePorTramo :: (Ruedas, Chasis)
-    desgastePorTramo = case tramo of
-      Curva angulo longitud -> (desgasteRuedaActual + (longitud * 3) / angulo, desgasteChasisActual)
-      Recta longitud -> (desgasteRuedaActual, desgasteChasisActual + longitud / 100)
-      ZigZag cambios -> (desgasteRuedaActual + (velocidadMaxima auto * cambios) / 10, desgasteChasisActual + 5)
-      Rulo diametro -> (desgasteRuedaActual + diametro * 1.5, desgasteChasisActual)
+aumentarDesgaste (Curva angulo longitud) auto = auto {desgaste = (desgasteRuedas auto + (3 * longitud / angulo), desgasteChasis auto)}
+aumentarDesgaste (Recta longitud) auto = auto {desgaste = (desgasteRuedas auto, desgasteChasis auto + longitud / 100)}
+aumentarDesgaste (ZigZag cambios) auto = auto {desgaste = (desgasteRuedas auto + velocidadMaxima auto * cambios / 10, desgasteChasis auto + 5)}
+aumentarDesgaste (Rulo diametro) auto = auto {desgaste = (desgasteRuedas auto + diametro * 1.5, desgasteChasis auto)}
 
 -- Punto 5a
 -- esUnaJoya :: Auto -> Bool

@@ -77,5 +77,3 @@ esMultilpDeAlguno :: Number->[Number]->Bool
 esMultilpDeAlguno a = any ((==0). mod a)
 
 --- Ejercicio 2 ---
-promedios :: [[Number]] -> [Number]
-promedios  = map (+10) 
