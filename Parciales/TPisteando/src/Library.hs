@@ -1,6 +1,6 @@
 module Library where
-import PdePreludat
 
+import PdePreludat
 
 -- Defincion de datos
 type Marca = String
@@ -29,7 +29,6 @@ type DiametroRulo = Number
 
 type PrecioBaseEntrada = Number
 
-
 data Auto = Auto
   { marca :: Marca,
     modelo :: Modelo,
@@ -53,56 +52,59 @@ esPar :: Number -> Bool
 esPar = even
 
 desgasteRuedas :: Auto -> Ruedas
-desgasteRuedas auto = fst (desgaste auto)
+desgasteRuedas = fst . desgaste
 
 desgasteChasis :: Auto -> Chasis
-desgasteChasis auto = snd (desgaste auto)
+desgasteChasis = snd . desgaste
 
 cantidadDeApodos :: Auto -> Number
-cantidadDeApodos auto = length (apodo auto)
+cantidadDeApodos = length . apodo
 
 cantidadLetrasModelo :: Auto -> Number
-cantidadLetrasModelo auto = length (modelo auto)
+cantidadLetrasModelo = length . modelo
 
 cantidadLetrasPrimerApodo :: Auto -> Number
-cantidadLetrasPrimerApodo auto = length (head (apodo auto))
-
+cantidadLetrasPrimerApodo = length . head . apodo
 
 -- Punto 2a
 esPeugeot :: Auto -> Bool
 esPeugeot auto = marca auto == "Peugeot"
 
 estaEnBuenEstado :: Auto -> Bool
-estaEnBuenEstado auto = not (esPeugeot auto) && cumpleCondicionesDeBuenEstado auto
+estaEnBuenEstado auto = (not . esPeugeot) auto && cumpleCondicionesDeBuenEstado auto
+
 cumpleCondicionesDeBuenEstado auto =
-    (tiempoDeCarrera auto < 100 && desgasteChasis auto < 20) ||
-    (tiempoDeCarrera auto > 100 && desgasteChasis auto < 40 && desgasteRuedas auto < 60)
+  (((< 100) . tiempoDeCarrera $ auto) && ((< 20) . desgasteChasis $ auto))  || 
+  (((> 100) . tiempoDeCarrera $ auto) && ((< 40) . desgasteChasis $ auto) && ((< 60) . desgasteRuedas $ auto))
+
+-- (tiempoDeCarrera auto < 100 && desgasteChasis auto < 20) ||
+-- (tiempoDeCarrera auto > 100 && desgasteChasis auto < 40 && desgasteRuedas auto < 60)
 
 arrancaConLa :: Auto -> Bool
-arrancaConLa auto = (take 2 . head  . apodo) auto == "La"
+arrancaConLa = (== "La") . take 2 . head . apodo
 
 -- Punto 2b
 noDaMas :: Auto -> Bool
 noDaMas auto =
-    (> 80) (desgasteChasis auto) && arrancaConLa auto ||
-    (> 80) (desgasteRuedas auto) && not (arrancaConLa auto)
+  (((> 80) . desgasteChasis $ auto) && arrancaConLa auto) ||
+  (((> 80) . desgasteRuedas $ auto) && (not . arrancaConLa $ auto))
 
 -- Punto 2c
 esUnChiche :: Auto -> Bool
 esUnChiche auto =
-    (< 20) (desgasteChasis auto) && (esPar . cantidadDeApodos) auto ||
-    (< 50) (desgasteChasis auto) && (not . esPar . cantidadDeApodos) auto
+  ((< 20) . desgasteChasis $ auto) && (esPar . cantidadDeApodos $ auto) || 
+  ((< 50) . desgasteChasis $ auto) && (not . esPar . cantidadDeApodos $ auto)
 
 -- Punto 2d
 esUnaJoya :: Auto -> Bool
 esUnaJoya auto =
-    (== 0) (desgasteRuedas auto) &&
-    (== 0) (desgasteChasis auto) &&
-    cantidadDeApodos auto == 1
+  ((== 0) . desgasteRuedas $ auto) && 
+  ((== 0) . desgasteChasis $ auto) && 
+  cantidadDeApodos auto == 1
 
 -- Punto 2e
 nivelChetez :: Auto -> Number
-nivelChetez auto = 20 * cantidadDeApodos auto * cantidadLetrasModelo auto
+nivelChetez auto = (* 20) . (* cantidadDeApodos auto) . cantidadLetrasModelo $ auto
 
 -- Punto 2f
 capacidadSupercalifragilisticaespialidosa :: Auto -> Number
@@ -115,18 +117,19 @@ capacidadSupercalifragilisticaespialidosa = cantidadLetrasPrimerApodo
 valorDeRiesgoAuto :: Auto -> Number
 valorDeRiesgoAuto auto
   | estaEnBuenEstado auto = riesgoBase
-  | otherwise = (*2) riesgoBase
-  where riesgoBase = velocidadMaxima auto * (desgasteRuedas auto / 10)
+  | otherwise = (* 2) riesgoBase
+  where
+    riesgoBase = velocidadMaxima auto * (desgasteRuedas auto / 10)
 
 -- Punto 3a
 -- Reparar un Auto la reparación de un auto baja en un 85% el
 -- desgaste del chasis (es decir que si está en 50, lo baja a 7.5) y deja en 0 el desgaste de las ruedas.
 
 reducirDesgasteChasis :: Number -> Number
-reducirDesgasteChasis desgaste = desgaste * 0.15
+reducirDesgasteChasis = (* 0.15)
 
 repararUnAuto :: Auto -> Auto
-repararUnAuto auto = auto {desgaste = (0, reducirDesgasteChasis (desgasteChasis auto))}
+repararUnAuto auto = auto {desgaste = (0, reducirDesgasteChasis . desgasteChasis $ auto)}
 
 -- Punto 3b
 aplicarPenalidad :: Auto -> Tiempo -> Auto
@@ -170,7 +173,6 @@ ruloClasico = Rulo 13
 deseoDeMuerte :: Tramo
 deseoDeMuerte = Rulo 26
 
-
 data Tramo = Curva Angulo Longitud | Recta Longitud | ZigZag CambiosDireccion | Rulo DiametroRulo deriving (Show)
 
 transitarTramo :: Tramo -> Auto -> Auto
@@ -178,13 +180,13 @@ transitarTramo tramo = aumentarTiempo tramo . aumentarDesgaste tramo
 
 aumentarTiempo :: Tramo -> Auto -> Auto
 aumentarTiempo (Curva angulo longitud) auto = auto {tiempoDeCarrera = tiempoDeCarrera auto + (longitud / (velocidadMaxima auto / 2))}
-aumentarTiempo (Recta longitud ) auto = auto {tiempoDeCarrera = tiempoDeCarrera auto + (longitud / velocidadMaxima auto)}
+aumentarTiempo (Recta longitud) auto = auto {tiempoDeCarrera = tiempoDeCarrera auto + (longitud / velocidadMaxima auto)}
 aumentarTiempo (ZigZag cambios) auto = auto {tiempoDeCarrera = tiempoDeCarrera auto + (cambios * 3)}
 aumentarTiempo (Rulo diametro) auto = auto {tiempoDeCarrera = tiempoDeCarrera auto + ((5 * diametro) / velocidadMaxima auto)}
 
 aumentarDesgaste :: Tramo -> Auto -> Auto
 aumentarDesgaste (Curva angulo longitud) auto = auto {desgaste = (desgasteRuedas auto + (3 * longitud / angulo), desgasteChasis auto)}
-aumentarDesgaste (Recta longitud ) auto = auto {desgaste = (desgasteRuedas auto, desgasteChasis auto + longitud / 100)}
+aumentarDesgaste (Recta longitud) auto = auto {desgaste = (desgasteRuedas auto, desgasteChasis auto + longitud / 100)}
 aumentarDesgaste (ZigZag cambios) auto = auto {desgaste = (desgasteRuedas auto + velocidadMaxima auto * cambios / 10, desgasteChasis auto + 5)}
 aumentarDesgaste (Rulo diametro) auto = auto {desgaste = (desgasteRuedas auto + diametro * 1.5, desgasteChasis auto)}
 
@@ -193,14 +195,13 @@ aumentarDesgaste (Rulo diametro) auto = auto {desgaste = (desgasteRuedas auto + 
 
 nivelDeJoyez :: [Auto] -> Number
 nivelDeJoyez [] = 0
-nivelDeJoyez (auto:autos)
+nivelDeJoyez (auto : autos)
   | esUnaJoya auto && tiempoDeCarrera auto < 50 = 2 + nivelDeJoyez autos
-  | esUnaJoya auto                              = 1 + nivelDeJoyez autos
-  | otherwise                                   = nivelDeJoyez autos
-
+  | esUnaJoya auto = 1 + nivelDeJoyez autos
+  | otherwise = nivelDeJoyez autos
 
 -- Punto 5b
 
 sonParaEntendidos :: [Auto] -> Bool
 sonParaEntendidos [] = True
-sonParaEntendidos (x:xs) = estaEnBuenEstado x && tiempoDeCarrera x <= 200 && sonParaEntendidos xs
+sonParaEntendidos (x : xs) = estaEnBuenEstado x && tiempoDeCarrera x <= 200 && sonParaEntendidos xs
