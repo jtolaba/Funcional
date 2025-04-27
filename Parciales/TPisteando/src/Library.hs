@@ -1,10 +1,6 @@
-{-# OPTIONS_GHC -Wno-missing-fields #-}
-
 module Library where
-
-import GHC.Base (ap, augment)
 import PdePreludat
-import GHC.ExecutionStack (Location(Location))
+
 
 -- Defincion de datos
 type Marca = String
@@ -150,35 +146,45 @@ llevarAlDesarmadero auto marca modelo = auto {marca = marca, modelo = modelo, ap
 
 -- Punto 4a
 --- Modelo de tramos ---
+curvaPeligrosa :: Tramo
 curvaPeligrosa = Curva 60 300
 
+curvaTranca :: Tramo
 curvaTranca = Curva 110 550
 
+tramoRetroClassic :: Tramo
 tramoRetroClassic = Recta 715
 
+tramito :: Tramo
 tramito = Recta 260
 
+zigZagLoco :: Tramo
 zigZagLoco = ZigZag 5
 
+casiCurva :: Tramo
 casiCurva = ZigZag 1
 
+ruloClasico :: Tramo
 ruloClasico = Rulo 13
+
+deseoDeMuerte :: Tramo
 deseoDeMuerte = Rulo 26
+
 
 data Tramo = Curva Angulo Longitud | Recta Longitud | ZigZag CambiosDireccion | Rulo DiametroRulo deriving (Show)
 
 transitarTramo :: Tramo -> Auto -> Auto
-transitarTramo tramo = aumentarTiempoEnPista tramo . aumentarDesgaste tramo
+transitarTramo tramo = aumentarTiempo tramo . aumentarDesgaste tramo
 
-aumentarTiempoEnPista :: Tramo -> Auto -> Auto
-aumentarTiempoEnPista (Curva angulo longitud) auto = auto {tiempoDeCarrera = tiempoDeCarrera auto + (longitud / (velocidadMaxima auto / 2))}
-aumentarTiempoEnPista (Recta longitud) auto = auto {tiempoDeCarrera = tiempoDeCarrera auto + (longitud / velocidadMaxima auto)}
-aumentarTiempoEnPista (ZigZag cambios) auto = auto {tiempoDeCarrera = tiempoDeCarrera auto + (cambios * 3)}
-aumentarTiempoEnPista (Rulo diametro) auto = auto {tiempoDeCarrera = tiempoDeCarrera auto + ((5 * diametro) / velocidadMaxima auto)}
+aumentarTiempo :: Tramo -> Auto -> Auto
+aumentarTiempo (Curva angulo longitud) auto = auto {tiempoDeCarrera = tiempoDeCarrera auto + (longitud / (velocidadMaxima auto / 2))}
+aumentarTiempo (Recta longitud ) auto = auto {tiempoDeCarrera = tiempoDeCarrera auto + (longitud / velocidadMaxima auto)}
+aumentarTiempo (ZigZag cambios) auto = auto {tiempoDeCarrera = tiempoDeCarrera auto + (cambios * 3)}
+aumentarTiempo (Rulo diametro) auto = auto {tiempoDeCarrera = tiempoDeCarrera auto + ((5 * diametro) / velocidadMaxima auto)}
 
 aumentarDesgaste :: Tramo -> Auto -> Auto
 aumentarDesgaste (Curva angulo longitud) auto = auto {desgaste = (desgasteRuedas auto + (3 * longitud / angulo), desgasteChasis auto)}
-aumentarDesgaste (Recta longitud) auto = auto {desgaste = (desgasteRuedas auto, desgasteChasis auto + longitud / 100)}
+aumentarDesgaste (Recta longitud ) auto = auto {desgaste = (desgasteRuedas auto, desgasteChasis auto + longitud / 100)}
 aumentarDesgaste (ZigZag cambios) auto = auto {desgaste = (desgasteRuedas auto + velocidadMaxima auto * cambios / 10, desgasteChasis auto + 5)}
 aumentarDesgaste (Rulo diametro) auto = auto {desgaste = (desgasteRuedas auto + diametro * 1.5, desgasteChasis auto)}
 
