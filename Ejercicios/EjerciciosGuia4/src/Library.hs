@@ -77,3 +77,20 @@ esMultilpDeAlguno :: Number->[Number]->Bool
 esMultilpDeAlguno a = any ((==0). mod a)
 
 --- Ejercicio 2 ---
+------------------------------ EJERCICIOS ORDEN SUPERIOR + LISTAS ------------------------------
+--- Mapeo de cuadrados: Dada una lista de números, obtené una lista con sus cuadrados.
+mapeoCuadrado= map (^2) [1 .. 100]
+--- Filtrar números pares:De una lista de enteros, quedate solo con los pares.
+filtroNumerosPares = filter even [1 .. 100]
+--- Sumar todos los elementos: Calculá la suma de todos los números en una lista.
+sumarElementos = foldr (+) 10 [1 .. 100]
+
+--- ¿Hay algún número negativo?:Decime si en una lista hay algún número menor que cero.
+hayUnNumeronegativo = any (< 0) [-5..5]
+--- Multiplicar todos los elementos: Calculá el producto de todos los números en una lista.
+calcularProductoLista = foldr (*) 1 [1..5]
+--- Filtrar palabras cortas: Dada una lista de palabras ([String]), quedate con las que tengan 3 o menos letras.
+filtraPalabrasCortas = filter ((<=3).length) ["Hola","Todo","Casa","Oso","La","Dos"]
+--- Agregar signo de exclamación: A cada palabra en una lista, agregale un "!" al final.
+agregarExclamacion = map (++"!") ["Hola","Como","Estas","Soy","Jorge"]
+--- Contar cuántos elementos cumplen una condición
