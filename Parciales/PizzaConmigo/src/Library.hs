@@ -1,7 +1,9 @@
 module Library where
+
 import PdePreludat
 
 type Ingrediente = String
+
 -------------------------------------------------------- Punto 1 --------------------------------------------------------
 --- a)
 data Pizza = Pizza
@@ -13,7 +15,7 @@ data Pizza = Pizza
 
 ---- b)
 grandeDeMuzza :: Pizza
-grandeDeMuzza = Pizza ["salsa","mozzarella","oregano"] 4 350
+grandeDeMuzza = Pizza ["salsa", "mozzarella", "oregano"] 4 350
 
 pepperoni :: Pizza
 pepperoni = Pizza ["salsa", "mozzarella", "pepperoni"] 4 400
@@ -43,7 +45,7 @@ mexicana :: Pizza
 mexicana = Pizza ["salsa", "mozzarella", "chorizo", "jalapeño", "tomate"] 4 410
 
 carbonara :: Pizza
-carbonara = Pizza ["salsa blanca", "mozzarella", "panceta", "huevo"] 4 420
+carbonara = Pizza ["salsa blanca", "mozzarella", "panceta", "huevo"] 10 420
 
 anchoasBasica :: Pizza
 anchoasBasica = Pizza ["anchoas", "salsa"] 8 270
@@ -65,27 +67,27 @@ valorPizza pizza = (* 120) . (* tamanio pizza) . length . ingredientes $ pizza
 -------------------------------------------------------- Punto 4 --------------------------------------------------------
 ---- a)
 nuevoIngrediente :: Ingrediente -> Pizza -> Pizza
-nuevoIngrediente ingrediente = agregarCalorias ((*2) . length$ingrediente) . agregarIngrediente ingrediente
+nuevoIngrediente ingrediente = agregarCalorias ((* 2) . length $ ingrediente) . agregarIngrediente ingrediente
 
-agregarCalorias:: Number->Pizza->Pizza
-agregarCalorias valor pizza = pizza{ calorias = calorias pizza + valor}
+agregarCalorias :: Number -> Pizza -> Pizza
+agregarCalorias valor pizza = pizza {calorias = calorias pizza + valor}
 
 agregarIngrediente :: String -> Pizza -> Pizza
 agregarIngrediente ingrediente pizza = pizza {ingredientes = ingrediente : ingredientes pizza}
 
 ---- b)
-agrandar:: Pizza -> Pizza
+agrandar :: Pizza -> Pizza
 agrandar pizza = pizza {tamanio = min 10 (tamanio pizza + 2)}
 
 ---- c)
 mezcladita :: Pizza -> Pizza -> Pizza
-mezcladita pizza pizza2= agregarCalorias (calorias pizza /2) (agregarIngredientes pizza2 pizza)
+mezcladita pizza pizza2 = agregarCalorias (calorias pizza / 2) (agregarIngredientes pizza2 pizza)
 
-ingredientesNoRepetidos:: Pizza -> Pizza -> [Ingrediente]
+ingredientesNoRepetidos :: Pizza -> Pizza -> [Ingrediente]
 ingredientesNoRepetidos p1 p2 = filter (not . (`elem` ingredientes p1)) (ingredientes p2)
 
 agregarIngredientes :: Pizza -> Pizza -> Pizza
-agregarIngredientes p1 p2= foldr agregarIngrediente p1 (ingredientesNoRepetidos p1  p2 )
+agregarIngredientes p1 p2 = foldr agregarIngrediente p1 (ingredientesNoRepetidos p1 p2)
 
 -------------------------------------------------------- Punto 5 --------------------------------------------------------
 nivelDeSatisfaccionPedido :: [Pizza] -> Number
@@ -111,18 +113,18 @@ pizzeriaPescadito = map (mezcladita anchoasBasica)
 
 ---- d)
 
+pizzeriaGourmet :: Number -> [Pizza] -> [Pizza]
+pizzeriaGourmet nivelExquisitez pizzas = map (agrandar . fst) (filter ((>= nivelExquisitez) . snd) (zip pizzas (map nivelDeSatisfaccion pizzas)))
 
-pizzeriaGourmet nivelExquisitez pizzas =  pizzas
+pizzeriaLaJauja :: [Pizza] -> [Pizza]
+pizzeriaLaJauja pizzas = map (agrandar . fst) (filter ((>= 399) . snd) (zip pizzas (map nivelDeSatisfaccion pizzas)))
 
--- pizzeriaLaJauja :: [Pizza] -> [Pizza]
--- pizzeriaLaJauja =
-
---Prueba de listas enlazada?
+-- Prueba de listas enlazada?
 enlazandoListas a = zip a (tail a)
+
 -------------------------------------------------------- Punto 7 --------------------------------------------------------
 
 -------------------------------------------------------- Punto 8 --------------------------------------------------------
 -- Explicar el tipo de la siguiente función:
--- yoPidoCualquierPizza x y z = any (odd . x . fst) z && all (y . snd) z
--- z es una lista tuplas de tipo [(a,b)]
--- y es una funcion que toma 
+yoPidoCualquierPizza :: (a -> Number) -> (b -> Bool) -> [(a, b)] -> Bool
+yoPidoCualquierPizza x y z = any (odd . x . fst) z && all (y . snd) z
