@@ -114,7 +114,7 @@ pizzeriaPescadito = map (mezcladita anchoasBasica)
 ---- d)
 
 pizzeriaGourmet :: Number -> [Pizza] -> [Pizza]
-pizzeriaGourmet nivelExquisitez pizzas = map (agrandar . fst) (filter ((>= nivelExquisitez) . snd) (zip pizzas (map nivelDeSatisfaccion pizzas)))
+pizzeriaGourmet nivelExquisitez pizzas = map (agrandar . fst) . filter ((>= nivelExquisitez) . snd) . zip pizzas . map nivelDeSatisfaccion$pizzas
 
 pizzeriaLaJauja :: [Pizza] -> [Pizza]
 pizzeriaLaJauja pizzas = map (agrandar . fst) (filter ((>= 399) . snd) (zip pizzas (map nivelDeSatisfaccion pizzas)))
@@ -128,3 +128,6 @@ enlazandoListas a = zip a (tail a)
 -- Explicar el tipo de la siguiente función:
 yoPidoCualquierPizza :: (a -> Number) -> (b -> Bool) -> [(a, b)] -> Bool
 yoPidoCualquierPizza x y z = any (odd . x . fst) z && all (y . snd) z
+{-
+x es una funcion que transforma el primer elemento de la tupla 
+-}
