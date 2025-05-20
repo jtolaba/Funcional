@@ -2,6 +2,7 @@ module Library where
 
 import PdePreludat
 
+
 ----Modelo de autos---
 ferrari = Auto "Ferrari" "F50" (0,0) 65 0 ["La nave", "El fierro", "Ferrucho"]
 lamborghini = Auto "Lamborghini" "Diablo" (4,7) 73 0 ["Lambo", "La bestia"]
@@ -220,31 +221,68 @@ data Equipo = Equipo
     autos :: [Auto]
   }
   deriving (Show)
-alpine = Equipo "Alpine" 3000 [ferrari,fiat,fiat]
+alpine = Equipo "Alpine" 20000 [
+  Auto "Ferrari" "F50" (10,10) 65 10 ["La nave"] ,
+  Auto "Lamborghini" "Diablo" (10,20) 65 10 ["La nave"]
+  ]
 williams = Equipo "Red Bull" 4500 [lamborghini,peugeot]
 mercedes = Equipo "Mercedes" 20000 [fiat,peugeot]
 
-realizarDescuentoPresupuesto :: Number -> Equipo -> Number
-realizarDescuentoPresupuesto descuento equipo = presupuesto equipo - descuento
-
---- agregarAutoAEquipo: añade un un auto y realiza un descuento en el presupuesto del equipo. 
+--- agregarAutoAEquipo: añade un un auto y realiza un descuento en el presupuesto del equipo.
 --- Tipo de descuento: costo de inscripcion del auto = 1000 * velocidad maxima del auto
-
+--- Tipo que devuelve: Equipo -> Equipo
 
 --- realizarReparacionEnEquipo: repara un auto realiza el descuento en el presupuesto del equipo
 --- Tipo de descuento: 500 * por cada punto de desgaste del chasis
 --- Recursividad: se repara todos los autos del equipo mientras el presupuesto lo permita
-
-
---- optimazarAutosEquipo:
+--- Tipo que devuelve: Equipo -> Equipo (con los autos reparados)
+realizarReparacionEnEquipo :: Equipo -> Equipo
+realizarReparacionEnEquipo equipo = equipo {
+  autos = fst autosReparados,
+  presupuesto = snd autosReparados
+  }
+  where
+    autosReparados = foldl repararAuto ([],presupuesto equipo) (autos equipo)
+    costoReparacion = (*0.85) . (*500) . desgasteChasis
+    repararAuto :: ([Auto],Number) -> Auto -> ([Auto],Number)
+    repararAuto (autos, presupuesto) auto
+      | presupuesto >= 500 * desgasteChasis auto = (repararUnAuto auto : autos, presupuesto - costoReparacion auto)
+      | otherwise = (auto : autos, presupuesto)
+        
+--- optimizarAutosEquipo:
 --- Tipo de descuento: velocidad maxima (inicial) * 100
 --- Recursividad: se pone nitro a todos los autos del equipo mientras el presupuesto lo permita
+--- Tipo que devuelve: Equipo -> Equipo (con los autos optimizados)
+optimizarAutosEquipo :: Equipo -> Equipo
+optimizarAutosEquipo equipo = equipo {
+  autos = fst autosOptimizados,
+  presupuesto = snd autosOptimizados
+  }
+  where
+    autosOptimizados = foldl optimizarAuto ([],presupuesto equipo) (autos equipo)
+    costoModificacion = (*100) . velocidadMaxima
+    optimizarAuto :: ([Auto],Number) -> Auto -> ([Auto],Number)
+    optimizarAuto (autos, presupuesto) auto
+      | presupuesto >= costoModificacion auto = (ponerNitro auto : autos, presupuesto - costoModificacion auto)
+      | otherwise = (auto : autos, presupuesto)
 
 --- ferrarizar: lleva al desarmadero todos los autos del equipo y les cambia la marca a "Ferrari" y el modelo a "F50"
 --- Tipo de descuento: costo de convertir un auto en ferrari = 3500
 --- Recursividad: realiza la operación mientras el presupuesto lo permita
+--- Tipo que devuelve: Equipo -> Equipo (con los autos ferrarizados)
 --- Nota: Un Auto ferrari no puede ser llevado al desarmadero es decir queda igual.
 
-ferrarizar ::Equipo -> Equipo
-
+ferrarizar :: Equipo -> Equipo
+ferrarizar equipo =  equipo {
+  autos = fst autosModificados,
+  presupuesto = snd autosModificados
+  }
   where
+    autosModificados = foldl ferrarizarAuto ([],presupuesto equipo) (autos equipo)
+    costoModificacion = 3500
+    ferrarizarAuto :: ([Auto],Number) -> Auto -> ([Auto],Number)
+    ferrarizarAuto (autos, presupuesto) auto
+      | marca auto == "Ferrari" = (auto : autos, presupuesto)
+      | presupuesto >= costoModificacion = (llevarAlDesarmadero auto "Ferrari" "F50" : autos, presupuesto - 3500)
+      | otherwise = (auto : autos, presupuesto)
+    
