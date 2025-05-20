@@ -2,6 +2,13 @@ module Library where
 
 import PdePreludat
 
+----Modelo de autos---
+ferrari = Auto "Ferrari" "F50" (0,0) 65 0 ["La nave", "El fierro", "Ferrucho"]
+lamborghini = Auto "Lamborghini" "Diablo" (4,7) 73 0 ["Lambo", "La bestia"]
+fiat = Auto "Fiat" "600" (27,33) 44 0 ["La Bocha", "La bolita", "Fitito"]
+peugeot = Auto "Peugeot" "504" (0,0) 40 0 ["El rey del desierto"]
+
+
 -- Defincion de datos
 type Marca = String
 
@@ -74,7 +81,7 @@ estaEnBuenEstado :: Auto -> Bool
 estaEnBuenEstado auto = (not . esPeugeot) auto && cumpleCondicionesDeBuenEstado auto
 
 cumpleCondicionesDeBuenEstado auto =
-  (((< 100) . tiempoDeCarrera $ auto) && ((< 20) . desgasteChasis $ auto))  || 
+  (((< 100) . tiempoDeCarrera $ auto) && ((< 20) . desgasteChasis $ auto))  ||
   (((> 100) . tiempoDeCarrera $ auto) && ((< 40) . desgasteChasis $ auto) && ((< 60) . desgasteRuedas $ auto))
 
 -- (tiempoDeCarrera auto < 100 && desgasteChasis auto < 20) ||
@@ -92,14 +99,14 @@ noDaMas auto =
 -- Punto 2c
 esUnChiche :: Auto -> Bool
 esUnChiche auto =
-  ((< 20) . desgasteChasis $ auto) && (esPar . cantidadDeApodos $ auto) || 
+  ((< 20) . desgasteChasis $ auto) && (esPar . cantidadDeApodos $ auto) ||
   ((< 50) . desgasteChasis $ auto) && (not . esPar . cantidadDeApodos $ auto)
 
 -- Punto 2d
 esUnaJoya :: Auto -> Bool
 esUnaJoya auto =
-  ((== 0) . desgasteRuedas $ auto) && 
-  ((== 0) . desgasteChasis $ auto) && 
+  ((== 0) . desgasteRuedas $ auto) &&
+  ((== 0) . desgasteChasis $ auto) &&
   cantidadDeApodos auto == 1
 
 -- Punto 2e
@@ -205,3 +212,39 @@ nivelDeJoyez (auto : autos)
 sonParaEntendidos :: [Auto] -> Bool
 sonParaEntendidos [] = True
 sonParaEntendidos (x : xs) = estaEnBuenEstado x && tiempoDeCarrera x <= 200 && sonParaEntendidos xs
+
+--------------------------------- Segunda parte del TP ---------------------------------
+data Equipo = Equipo
+  { nombreEquipo :: Nombre,
+    presupuesto :: Number,
+    autos :: [Auto]
+  }
+  deriving (Show)
+alpine = Equipo "Alpine" 3000 [ferrari,fiat,fiat]
+williams = Equipo "Red Bull" 4500 [lamborghini,peugeot]
+mercedes = Equipo "Mercedes" 20000 [fiat,peugeot]
+
+realizarDescuentoPresupuesto :: Number -> Equipo -> Number
+realizarDescuentoPresupuesto descuento equipo = presupuesto equipo - descuento
+
+--- agregarAutoAEquipo: añade un un auto y realiza un descuento en el presupuesto del equipo. 
+--- Tipo de descuento: costo de inscripcion del auto = 1000 * velocidad maxima del auto
+
+
+--- realizarReparacionEnEquipo: repara un auto realiza el descuento en el presupuesto del equipo
+--- Tipo de descuento: 500 * por cada punto de desgaste del chasis
+--- Recursividad: se repara todos los autos del equipo mientras el presupuesto lo permita
+
+
+--- optimazarAutosEquipo:
+--- Tipo de descuento: velocidad maxima (inicial) * 100
+--- Recursividad: se pone nitro a todos los autos del equipo mientras el presupuesto lo permita
+
+--- ferrarizar: lleva al desarmadero todos los autos del equipo y les cambia la marca a "Ferrari" y el modelo a "F50"
+--- Tipo de descuento: costo de convertir un auto en ferrari = 3500
+--- Recursividad: realiza la operación mientras el presupuesto lo permita
+--- Nota: Un Auto ferrari no puede ser llevado al desarmadero es decir queda igual.
+
+ferrarizar ::Equipo -> Equipo
+
+  where

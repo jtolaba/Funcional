@@ -5,10 +5,7 @@ import Library
 import Test.Hspec
 
 -- MODELOS INICIALES --
-ferrari = Auto "Ferrari" "F50" (0,0) 65 0 ["La nave", "El fierro", "Ferrucho"]
-lamborghini = Auto "Lamborghini" "Diablo" (4,7) 73 0 ["Lambo", "La bestia"]
-fiat = Auto "Fiat" "600" (27,33) 44 0 ["La Bocha", "La bolita", "Fitito"]
-peugeot = Auto "Peugeot" "504" (0,0) 40 0 ["El rey del desierto"]
+
 
 correrTests :: IO ()
 correrTests = hspec $ do
