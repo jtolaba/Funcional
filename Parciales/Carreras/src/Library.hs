@@ -1,65 +1,141 @@
 module Library where
+
 import PdePreludat
 
-
-
--- De cada auto conocemos su color (que nos servirá para identificarlo durante el desarrollo de la carrera), la velocidad a la que está yendo y la distancia que recorrió, ambos valores de tipo entero.
-
------- Modelos para las pruebas ------
-amarillo = Auto "Amarillo" 120 100
-verde = Auto "Verde" 100 98
-azul = Auto "Azul" 100 120
-rojo = Auto "Rojo" 160 200
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+-- Declarar los tipos Auto y Carrera como consideres convenientes para representar la información indicada y definir funciones para resolver los siguientes problemas:
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 data Auto = Auto
-  {color :: String,
+  { color :: Color,
     velocidad :: Number,
-    distancia :: Number
-  } deriving (Eq,Show)
+    distanciaRecorrida :: Number
+  }
+  deriving (Eq, Show)
 
-type Carrera =  [Auto]
+type Carrera = [Auto]
 
-testCarrera :: Carrera
-testCarrera = [amarillo,verde,azul,rojo]
--------------------------------------------------------- Punto 1a --------------------------------------------------------
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+-- Datos de Ejemplo
+amarillo = Auto "amarillo" 120 100
 
+verde = Auto "verde" 100 95
+
+azul = Auto "azul" 100 120
+
+rojo = Auto "rojo" 160 200
+
+testCarrera = [amarillo, verde, azul, rojo]
+
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+-- a) Saber si un auto está cerca de otro auto, que se cumple si son autos distintos y la distancia que hay entre ellos (en valor absoluto) es menor a 10.
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 estaCerca :: Auto -> Auto -> Bool
-estaCerca a1 a2 =  calcularDistancia a1 a2 < 10 && sonDistintos a1 a2
+estaCerca auto1 auto2 = auto1 /= auto2 && distanciaEntre auto1 auto2 < 10
 
-calcularDistancia :: Auto -> Auto -> Number
-calcularDistancia a1 a2 = abs$ distancia a1 - distancia a2
+distanciaEntre :: Auto -> Auto -> Number
+distanciaEntre auto1 = abs . (distanciaRecorrida auto1 -) . distanciaRecorrida
 
-sonDistintos :: Auto -> Auto -> Bool
-sonDistintos a1 a2 = color a1 /= color a2
--------------------------------------------------------- Punto 1b --------------------------------------------------------
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+-- b) Saber si un auto va tranquilo en una carrera, que se cumple si no tiene ningún auto cerca y les va ganando a todos (por haber recorrido más distancia que los otros).
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-vaTranquilo :: Auto -> [Auto] -> Bool
-vaTranquilo auto autos = (distancia auto > distancia contricanteConMayorDistanciaRecorrida) && (not . any (estaCerca auto))contricantes
-  where
-  contricantes = autosContricantes auto autos
-  contricanteConMayorDistanciaRecorrida = autoConMayorDistaciaRecorrida contricantes
+vaTranquilo :: Auto -> Carrera -> Bool
+vaTranquilo auto carrera = (not . tieneAlgunoCerca auto) carrera && vaGanando auto carrera
 
-autosContricantes :: Auto -> [Auto] -> [Auto]
-autosContricantes auto = filter (sonDistintos auto)
+vaGanando :: Auto -> Carrera -> Bool
+vaGanando auto = all (leVaGanando auto) . contrincantes auto
 
-autoConMayorDistaciaRecorrida :: [Auto] -> Auto
-autoConMayorDistaciaRecorrida = foldl1 mayorDistanciaRecorrida
-  where
-    mayorDistanciaRecorrida a1 a2
-      | distancia a1 > distancia a2 = a1
-      | otherwise = a2
+contrincantes :: Auto -> Carrera -> [Auto]
+contrincantes auto = filter (/= auto)
 
-autosPorDelante :: Auto -> [Auto] -> [Auto]
-autosPorDelante a1 autos = foldl vanGanando [] (autosContricantes a1 autos)
-  where
-    vanGanando acumulador auto
-      | distancia auto > distancia a1 = acumulador ++ [auto]
-      | otherwise = acumulador
+leVaGanando :: Auto -> Auto -> Bool
+leVaGanando ganador auto = ganador /= auto && distanciaRecorrida ganador > distanciaRecorrida auto
 
-posicion :: Auto -> [Auto] -> Number
-posicion auto autos = length (autosPorDelante auto autos) + 1
-    
--------------------------------------------------------- Punto 1c --------------------------------------------------------
+tieneAlgunoCerca :: Auto -> Carrera -> Bool
+tieneAlgunoCerca auto carrera = any (estaCerca auto) (filter (/= auto) carrera)
 
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+-- c) Conocer en qué puesto está un auto en una carrera, que es 1 + la cantidad de autos de la carrera que le van ganando.
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+puesto :: Auto -> Carrera -> Number
+puesto auto = (+ 1) . length . filter (not . leVaGanando auto) . contrincantes auto
 
-  
--------------------------------------------------------- Punto 2  --------------------------------------------------------
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+-- 2.a Hacer que un auto corra durante un determinado tiempo. Luego de correr la cantidad de tiempo indicada, la distancia recorrida por el auto debería ser equivalente a la distancia que llevaba 
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+correr :: Number -> Auto -> Auto
+correr tiempo auto = auto {distanciaRecorrida = distanciaRecorrida auto + tiempo * velocidad auto}
+
+type ModificadorVelocidad = Number -> Number
+
+alterarVelocidad :: ModificadorVelocidad -> Auto -> Auto
+alterarVelocidad modificador auto = auto {velocidad = (modificador . velocidad) auto}
+
+bajarVelocidad :: Number -> Auto -> Auto
+bajarVelocidad velocidadABajar = alterarVelocidad (max 0 . subtract velocidadABajar)
+
+afectarALosQueCumplen :: (Auto -> Bool) -> (Auto -> Auto) -> [Auto] -> [Auto]
+afectarALosQueCumplen criterio efecto lista =
+  (map efecto . filter criterio) lista ++ filter (not . criterio) lista
+
+type PowerUp = Auto -> Carrera -> Carrera
+
+terremoto :: PowerUp
+terremoto autoQueGatillo = afectarALosQueCumplen (estaCerca autoQueGatillo) (bajarVelocidad 50)
+
+miguelitos :: Number -> PowerUp
+miguelitos velocidadAReducir autoQueGatillo = afectarALosQueCumplen (not . leVaGanando autoQueGatillo) (bajarVelocidad velocidadAReducir)
+
+jetPack :: Number -> PowerUp
+jetPack tiempo autoQueGatillo =
+    afectarALosQueCumplen (== autoQueGatillo) (alterarVelocidad (\ _ -> velocidad autoQueGatillo) . correr tiempo . alterarVelocidad (*2))
+
+-- (alterarVelocidad (\ _ ->velocidad amarillo) . correr 10 . bajarVelocidad 120) amarillo
+type Color = String
+type Evento = Carrera -> Carrera
+simularCarrera :: Carrera -> [Evento] -> [(Number, Color)]
+simularCarrera carrera eventos = (tablaDePosiciones . procesarEventos eventos) carrera
+
+tablaDePosiciones :: Carrera -> [(Number, Color)]
+tablaDePosiciones carrera 
+  = map (entradaDeTabla carrera) carrera
+
+entradaDeTabla :: Carrera -> Auto -> (Number, String)
+entradaDeTabla carrera auto = (puesto auto carrera, color auto)
+
+tablaDePosiciones' :: Carrera -> [(Number, String)]
+tablaDePosiciones' carrera 
+  = zip (map (flip puesto carrera) carrera) (map color carrera)
+
+procesarEventos :: [Evento] -> Carrera -> Carrera
+procesarEventos eventos carreraInicial =
+    foldl (\carreraActual evento -> evento carreraActual) 
+      carreraInicial eventos
+
+procesarEventos' eventos carreraInicial =
+    foldl (flip ($)) carreraInicial eventos
+
+correnTodos :: Number -> Evento
+correnTodos tiempo = map (correr tiempo)
+
+usaPowerUp :: PowerUp -> Color -> Evento
+usaPowerUp powerUp colorBuscado carrera =
+    powerUp autoQueGatillaElPoder carrera
+    where autoQueGatillaElPoder = find ((== colorBuscado).color) carrera
+
+find :: (c -> Bool) -> [c] -> c
+find cond = head . filter cond
+
+ejemploDeUsoSimularCarrera =
+    simularCarrera autosDeEjemplo [
+        correnTodos 30,
+        usaPowerUp (jetPack 3) "azul",
+        usaPowerUp terremoto "blanco",
+        correnTodos 40,
+        usaPowerUp (miguelitos 20) "blanco",
+        usaPowerUp (jetPack 6) "negro",
+        correnTodos 10
+    ]
+
+autosDeEjemplo :: [Auto]
+autosDeEjemplo = map (\color -> Auto color 120 0) ["rojo", "blanco", "azul", "negro"]
