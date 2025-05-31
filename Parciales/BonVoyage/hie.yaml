@@ -1,0 +1,7 @@
+cradle:
+  stack:
+    - path: "./src"
+      component: "BonVoyage:lib"
+
+    - path: "./test"
+      component: "BonVoyage:test:BonVoyage-test"
