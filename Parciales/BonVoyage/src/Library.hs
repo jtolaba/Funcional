@@ -25,6 +25,7 @@ reservaLarga = Reserva
   [Tramo "Buenos Aires" "Sao Paulo" (6,"hs"), Tramo "Sao Paulo" "Londres" (10,"hs"),Tramo "Buenos Aires" "Chascomus" (25,"min"),Tramo "Buenos Aires" "Chascomus" (15,"min")] --- Tramos
   [lunchCompleto, menuEspecial "celiaco",otrosUtensillos ["almohada","auriculares"]] --- Agregados
   45000 --- Costo Base
+  
 
 reservaCorta = Reserva
   ["Cesar Frere"] --- Pasajeros
