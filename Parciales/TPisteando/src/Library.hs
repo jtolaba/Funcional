@@ -3,6 +3,7 @@ module Library where
 import PdePreludat
 
 
+
 ----Modelo de autos---
 ferrari = Auto "Ferrari" "F50" (0,0) 65 0 ["La nave", "El fierro", "Ferrucho"]
 lamborghini = Auto "Lamborghini" "Diablo" (4,7) 73 0 ["Lambo", "La bestia"]
@@ -136,7 +137,7 @@ valorDeRiesgoAuto auto
 reducirDesgasteChasis :: Number -> Number
 reducirDesgasteChasis = (* 0.15)
 
-repararUnAuto :: Tramo
+repararUnAuto :: Auto -> Auto
 repararUnAuto auto = auto {desgaste = (0, reducirDesgasteChasis . desgasteChasis $ auto)}
 
 -- Punto 3b
@@ -260,6 +261,7 @@ sonParaEntendidos [] = True
 sonParaEntendidos (x : xs) = estaEnBuenEstado x && tiempoDeCarrera x <= 200 && sonParaEntendidos xs
 
 --------------------------------- Segunda parte del TP ---------------------------------
+
 data Equipo = Equipo
   { nombreEquipo :: Nombre,
     presupuesto :: Number,
@@ -275,25 +277,53 @@ mercedes = Equipo "Mercedes" 20000 [fiat,peugeot]
 
 
 
-
+--- Punto 4
+--- 4.a ---
 boxes trayectoria tipoTramo auto
   | noDaMas auto          = auto  -- No puede hacer nada si no da más
   | estaEnBuenEstado auto = trayectoria tipoTramo auto
   | otherwise             = repararUnAuto . alterarTiempo (+10) $ trayectoria tipoTramo auto
 
-
-ripio trayectoria tipoTramo = pasarPorTramo tipoTramo . trayectoria tipoTramo
-
+--- 4.b ---
 mojado trayectoria tipoTramo auto= alterarTiempo (+tiempoExtra) $ trayectoria tipoTramo auto
   where tiempoExtra = tiempoDeCarrera (trayectoria tipoTramo auto) / 2
 
+--- 4.c ---
+ripio trayectoria tipoTramo = pasarPorTramo tipoTramo . trayectoria tipoTramo
+
+--- 4.d ---
 obstruccion metros trayectoria tipoTramo = alterarDesgaste modificar $ trayectoria tipoTramo
-  where 
+  where
     desgasteRuedasPorObstruccion = metros * 2
     modificar (ruedas,chasis) = (ruedas + desgasteRuedasPorObstruccion, chasis)
 
+--- 4.e ---
 turbo trayectoria tipoTramo auto = alterarVelocidad (\ _ -> velocidadMaxima auto) . trayectoria tipoTramo . alterarVelocidad (*2)$auto
 
+--- Punto 5
+pasarPorTramo :: TipoTramo -> Auto -> Auto
+pasarPorTramo tramo auto
+  | (not . noDaMas) auto = transitarTramo tramo auto
+  | otherwise = auto
+
+--- Punto 6
+--- 6.a ---
+vueltaALaManzana :: Pista
+vueltaALaManzana = Pista "La Manzana" "Italia" 30 [
+  pasarPorTramo tramoA,
+  pasarPorTramo tramoB,
+  pasarPorTramo tramoA,
+  pasarPorTramo tramoB,
+  pasarPorTramo tramoA,
+  pasarPorTramo tramoB,
+  pasarPorTramo tramoA,
+  pasarPorTramo tramoB
+  ]
+    where
+    tramoA = Recta 130
+    tramoB = Curva 90 13
+
+--- 6.b ---
 superPista :: Pista
 superPista= Pista "SuperPista" "Argentina" 300 [
   pasarPorTramo tramoRetroClassic,
@@ -306,25 +336,67 @@ superPista= Pista "SuperPista" "Argentina" 300 [
   pasarPorTramo (Recta 970),
   pasarPorTramo curvaPeligrosa,
   ripio pasarPorTramo tramito, --- modificado con ripio
-  boxes pasarPorTramo (Recta 800), 
-  (obstruccion 5 . pasarPorTramo) casiCurva, 
+  boxes pasarPorTramo (Recta 800),
+  (obstruccion 5 . pasarPorTramo) casiCurva,
   pasarPorTramo (ZigZag 2),
   (ripio . mojado) pasarPorTramo deseoDeMuerte,
   pasarPorTramo ruloClasico,
   pasarPorTramo zigZagLoco
   ]
 
+
+--- 6.c ---
 recorrerTramosConAuto :: [Auto -> Auto] -> Auto -> Auto
 recorrerTramosConAuto tramos auto = foldl (\a f -> f a) auto tramos
 
 recorrerTramosConAuto' = foldl (flip ($))
-
---- Punto 5
-pasarPorTramo :: TipoTramo -> Auto -> Auto
-pasarPorTramo tramo auto
-  | (not . noDaMas) auto = transitarTramo tramo auto
-  | otherwise = auto
+peganLaVuelta :: Pista -> [Auto] -> [Auto]
+peganLaVuelta pista = map (recorrerTramosConAuto (tramos pista))
 
 ferrariTest :: Auto
-ferrariTest = Auto "Ferrari" "F50" (80,80) 65 10 ["La nave"]
+ferrariTest = Auto "Ferrari" "F50" (79,80) 65 0 ["La nave"]
+peugeotTest = Auto "Peugeot" "504" (79,0) 40 0 ["El rey del desierto"]
 -- Auto "Ferrari" "F50" (10,82.6) 65 0 ["La nave"] 0
+
+--- Punto 7
+--- 7.a ---
+data Carrera = Carrera{
+  pista :: Pista,
+  vueltas :: Number
+} deriving (Show)
+
+--- 7.b ---
+tourDeBuenosAires = Carrera superPista 20
+
+--- 7.c ---
+simularVueltas :: Number -> Pista -> [Auto] -> [[Auto]]
+simularVueltas 0 _ autos = [autos]
+simularVueltas _ _ [] = []
+simularVueltas n pista autos =
+  autos : simularVueltas (n - 1) pista (filter (not . noDaMas) (map (recorrerTramosConAuto (tramos pista)) autos))
+
+simularCarrera :: Carrera -> [Auto] -> [[Auto]]
+simularCarrera carrera autos = simularVueltas (vueltas carrera) (pista carrera) autos
+
+
+-- Funcion dada en el enunciado
+quickSortBy :: Ord b => (a -> b) -> [a] -> [a]
+quickSortBy _ [] = []
+quickSortBy valoracion (x:xs) = anteriores ++ [x] ++ posteriores    
+    where
+        anteriores  = quickSortBy valoracion $ filter ((< valoracion x).valoracion)  xs
+        posteriores = quickSortBy valoracion $ filter ((>= valoracion x).valoracion) xs
+-- recorrerVueltas :: Number -> [Auto] -> [Auto]
+-- recorrerVueltas 0 autos = autos
+-- recorrerVueltas vueltas autos
+--   | null autos = []
+--   | otherwise = recorrerVueltas (vueltas - 1) (filter (not.noDaMas) (peganLaVuelta (pista carrera) autos))
+--   where
+--     carrera = Carrera superPista vueltas
+
+-- quickSortBy :: Ord b => (a -> b) -> [a] -> [a]
+-- quickSortBy _ [] = []
+-- quickSortBy valoracion (x:xs) = anteriores ++ [x] ++ posteriores    
+--     where
+--         anteriores  = quickSortBy valoracion $ filter ((< valoracion x).valoracion)  xs
+--         posteriores = quickSortBy valoracion $ filter ((>= valoracion x).valoracion) xs
