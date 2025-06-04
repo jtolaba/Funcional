@@ -207,3 +207,4 @@ correrTests = hspec $ do
       it "El grupo es para entendidos si ambos autos están en buen estado y tienen tiempos <= 200" $ do
         let autos = [ferrari200, lamborghini200]
         autos  `shouldSatisfy` sonParaEntendidos
+

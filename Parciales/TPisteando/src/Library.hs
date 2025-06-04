@@ -83,7 +83,7 @@ estaEnBuenEstado auto = (not . esPeugeot) auto && cumpleCondicionesDeBuenEstado 
 
 cumpleCondicionesDeBuenEstado auto =
   (((< 100) . tiempoDeCarrera $ auto) && ((< 20) . desgasteChasis $ auto))  ||
-  (((> 100) . tiempoDeCarrera $ auto) && ((< 40) . desgasteChasis $ auto) && ((< 60) . desgasteRuedas $ auto))
+  (((>= 100) . tiempoDeCarrera $ auto) && ((< 40) . desgasteChasis $ auto) && ((< 60) . desgasteRuedas $ auto))
 
 -- (tiempoDeCarrera auto < 100 && desgasteChasis auto < 20) ||
 -- (tiempoDeCarrera auto > 100 && desgasteChasis auto < 40 && desgasteRuedas auto < 60)
@@ -136,7 +136,7 @@ valorDeRiesgoAuto auto
 reducirDesgasteChasis :: Number -> Number
 reducirDesgasteChasis = (* 0.15)
 
-repararUnAuto :: Auto -> Auto
+repararUnAuto :: Tramo
 repararUnAuto auto = auto {desgaste = (0, reducirDesgasteChasis . desgasteChasis $ auto)}
 
 -- Punto 3b
@@ -157,46 +157,91 @@ llevarAlDesarmadero auto marca modelo = auto {marca = marca, modelo = modelo, ap
 
 -- Punto 4a
 --- Modelo de tramos ---
-curvaPeligrosa :: Tramo
+curvaPeligrosa :: TipoTramo
 curvaPeligrosa = Curva 60 300
 
-curvaTranca :: Tramo
+curvaTranca :: TipoTramo
 curvaTranca = Curva 110 550
 
-tramoRetroClassic :: Tramo
+tramoRetroClassic :: TipoTramo
 tramoRetroClassic = Recta 715
 
-tramito :: Tramo
+tramito :: TipoTramo
 tramito = Recta 260
 
-zigZagLoco :: Tramo
+zigZagLoco :: TipoTramo
 zigZagLoco = ZigZag 5
 
-casiCurva :: Tramo
+casiCurva :: TipoTramo
 casiCurva = ZigZag 1
 
-ruloClasico :: Tramo
+ruloClasico :: TipoTramo
 ruloClasico = Rulo 13
 
-deseoDeMuerte :: Tramo
+deseoDeMuerte :: TipoTramo
 deseoDeMuerte = Rulo 26
 
-data Tramo = Curva Angulo Longitud | Recta Longitud | ZigZag CambiosDireccion | Rulo DiametroRulo deriving (Show)
+data TipoTramo = Curva Angulo Longitud | Recta Longitud | ZigZag CambiosDireccion | Rulo DiametroRulo deriving (Show)
 
-transitarTramo :: Tramo -> Auto -> Auto
+type Tramo = Auto -> Auto
+
+transitarTramo :: TipoTramo -> Auto -> Auto
 transitarTramo tramo = aumentarTiempo tramo . aumentarDesgaste tramo
 
-aumentarTiempo :: Tramo -> Auto -> Auto
-aumentarTiempo (Curva angulo longitud) auto = auto {tiempoDeCarrera = tiempoDeCarrera auto + (longitud / (velocidadMaxima auto / 2))}
-aumentarTiempo (Recta longitud) auto = auto {tiempoDeCarrera = tiempoDeCarrera auto + (longitud / velocidadMaxima auto)}
-aumentarTiempo (ZigZag cambios) auto = auto {tiempoDeCarrera = tiempoDeCarrera auto + (cambios * 3)}
-aumentarTiempo (Rulo diametro) auto = auto {tiempoDeCarrera = tiempoDeCarrera auto + ((5 * diametro) / velocidadMaxima auto)}
+type ModificadorDeTiempo = Number -> Number
 
-aumentarDesgaste :: Tramo -> Auto -> Auto
-aumentarDesgaste (Curva angulo longitud) auto = auto {desgaste = (desgasteRuedas auto + (3 * longitud / angulo), desgasteChasis auto)}
-aumentarDesgaste (Recta longitud) auto = auto {desgaste = (desgasteRuedas auto, desgasteChasis auto + longitud / 100)}
-aumentarDesgaste (ZigZag cambios) auto = auto {desgaste = (desgasteRuedas auto + velocidadMaxima auto * cambios / 10, desgasteChasis auto + 5)}
-aumentarDesgaste (Rulo diametro) auto = auto {desgaste = (desgasteRuedas auto + diametro * 1.5, desgasteChasis auto)}
+alterarTiempo :: ModificadorDeTiempo -> Auto -> Auto
+alterarTiempo modificador auto = auto { tiempoDeCarrera = (modificador . tiempoDeCarrera) auto}
+
+
+aumentarTiempo :: TipoTramo -> Auto -> Auto
+aumentarTiempo (Curva angulo longitud) auto = alterarTiempo (+tiempoCurva) auto
+  where tiempoCurva = longitud / (velocidadMaxima auto / 2)
+
+aumentarTiempo (Recta longitud) auto = alterarTiempo (+ tiempoRecta) auto
+  where tiempoRecta = longitud / velocidadMaxima auto
+
+aumentarTiempo (ZigZag cambios) auto = alterarTiempo (+ tiempoZigZag) auto
+  where tiempoZigZag = cambios * 3
+
+aumentarTiempo (Rulo diametro) auto = alterarTiempo (+ tiempoRulo) auto
+  where tiempoRulo = (5 * diametro) / velocidadMaxima auto
+
+type ModificadorDesgaste = (Number,Number) -> (Number,Number)
+
+alterarDesgaste :: ModificadorDesgaste ->Auto->Auto
+alterarDesgaste modificadorDesgaste auto = auto { desgaste = (modificadorDesgaste . desgaste) auto}
+
+aumentarDesgaste :: TipoTramo -> Auto -> Auto
+
+aumentarDesgaste (Curva angulo longitud) auto = alterarDesgaste modificar auto
+  where
+    modificar (ruedas, chasis) = (ruedas + (3 * longitud / angulo), chasis)
+
+aumentarDesgaste (Recta longitud) auto = alterarDesgaste modificar auto
+  where
+    modificar (ruedas, chasis) = (ruedas, chasis + longitud / 100)
+
+aumentarDesgaste (ZigZag cambios) auto = alterarDesgaste modificar auto
+  where
+    v = velocidadMaxima auto
+    modificar (ruedas, chasis) = (ruedas + v * cambios / 10, chasis + 5)
+
+aumentarDesgaste (Rulo diametro) auto = alterarDesgaste modificar auto
+  where
+    modificar (ruedas, chasis) = (ruedas + diametro * 1.5, chasis)
+
+type ModificadorVelocidad = Number -> Number
+
+alterarVelocidad :: ModificadorVelocidad -> Auto -> Auto
+alterarVelocidad modificador auto = auto {velocidadMaxima = (modificador . velocidadMaxima) auto}
+
+
+-- aumentarDesgaste (Curva angulo longitud) auto = auto {desgaste = (desgasteRuedas auto + (3 * longitud / angulo), desgasteChasis auto)}
+-- aumentarDesgaste (Recta longitud) auto = auto {desgaste = (desgasteRuedas auto, desgasteChasis auto + longitud / 100)}
+-- aumentarDesgaste (ZigZag cambios) auto = auto {desgaste = (desgasteRuedas auto + velocidadMaxima auto * cambios / 10, desgasteChasis auto + 5)}
+-- aumentarDesgaste (Rulo diametro) auto = auto {desgaste = (desgasteRuedas auto + diametro * 1.5, desgasteChasis auto)}
+
 
 -- Punto 5a
 -- esUnaJoya :: Auto -> Bool
@@ -222,67 +267,64 @@ data Equipo = Equipo
   }
   deriving (Show)
 alpine = Equipo "Alpine" 20000 [
-  Auto "Ferrari" "F50" (10,10) 65 10 ["La nave"] ,
+  Auto "Ferrari" "F50" (10,10) 65 10 ["La nave"],
   Auto "Lamborghini" "Diablo" (10,20) 65 10 ["La nave"]
   ]
 williams = Equipo "Red Bull" 4500 [lamborghini,peugeot]
 mercedes = Equipo "Mercedes" 20000 [fiat,peugeot]
 
---- agregarAutoAEquipo: añade un un auto y realiza un descuento en el presupuesto del equipo.
---- Tipo de descuento: costo de inscripcion del auto = 1000 * velocidad maxima del auto
---- Tipo que devuelve: Equipo -> Equipo
 
---- realizarReparacionEnEquipo: repara un auto realiza el descuento en el presupuesto del equipo
---- Tipo de descuento: 500 * por cada punto de desgaste del chasis
---- Recursividad: se repara todos los autos del equipo mientras el presupuesto lo permita
---- Tipo que devuelve: Equipo -> Equipo (con los autos reparados)
-realizarReparacionEnEquipo :: Equipo -> Equipo
-realizarReparacionEnEquipo equipo = equipo {
-  autos = fst autosReparados,
-  presupuesto = snd autosReparados
-  }
-  where
-    autosReparados = foldl repararAuto ([],presupuesto equipo) (autos equipo)
-    costoReparacion = (*0.85) . (*500) . desgasteChasis
-    repararAuto :: ([Auto],Number) -> Auto -> ([Auto],Number)
-    repararAuto (autos, presupuesto) auto
-      | presupuesto >= 500 * desgasteChasis auto = (repararUnAuto auto : autos, presupuesto - costoReparacion auto)
-      | otherwise = (auto : autos, presupuesto)
-        
---- optimizarAutosEquipo:
---- Tipo de descuento: velocidad maxima (inicial) * 100
---- Recursividad: se pone nitro a todos los autos del equipo mientras el presupuesto lo permita
---- Tipo que devuelve: Equipo -> Equipo (con los autos optimizados)
-optimizarAutosEquipo :: Equipo -> Equipo
-optimizarAutosEquipo equipo = equipo {
-  autos = fst autosOptimizados,
-  presupuesto = snd autosOptimizados
-  }
-  where
-    autosOptimizados = foldl optimizarAuto ([],presupuesto equipo) (autos equipo)
-    costoModificacion = (*100) . velocidadMaxima
-    optimizarAuto :: ([Auto],Number) -> Auto -> ([Auto],Number)
-    optimizarAuto (autos, presupuesto) auto
-      | presupuesto >= costoModificacion auto = (ponerNitro auto : autos, presupuesto - costoModificacion auto)
-      | otherwise = (auto : autos, presupuesto)
 
---- ferrarizar: lleva al desarmadero todos los autos del equipo y les cambia la marca a "Ferrari" y el modelo a "F50"
---- Tipo de descuento: costo de convertir un auto en ferrari = 3500
---- Recursividad: realiza la operación mientras el presupuesto lo permita
---- Tipo que devuelve: Equipo -> Equipo (con los autos ferrarizados)
---- Nota: Un Auto ferrari no puede ser llevado al desarmadero es decir queda igual.
 
-ferrarizar :: Equipo -> Equipo
-ferrarizar equipo =  equipo {
-  autos = fst autosModificados,
-  presupuesto = snd autosModificados
-  }
-  where
-    autosModificados = foldl ferrarizarAuto ([],presupuesto equipo) (autos equipo)
-    costoModificacion = 3500
-    ferrarizarAuto :: ([Auto],Number) -> Auto -> ([Auto],Number)
-    ferrarizarAuto (autos, presupuesto) auto
-      | marca auto == "Ferrari" = (auto : autos, presupuesto)
-      | presupuesto >= costoModificacion = (llevarAlDesarmadero auto "Ferrari" "F50" : autos, presupuesto - 3500)
-      | otherwise = (auto : autos, presupuesto)
-    
+boxes trayectoria tipoTramo auto
+  | noDaMas auto          = auto  -- No puede hacer nada si no da más
+  | estaEnBuenEstado auto = trayectoria tipoTramo auto
+  | otherwise             = repararUnAuto . alterarTiempo (+10) $ trayectoria tipoTramo auto
+
+
+ripio trayectoria tipoTramo = pasarPorTramo tipoTramo . trayectoria tipoTramo
+
+mojado trayectoria tipoTramo auto= alterarTiempo (+tiempoExtra) $ trayectoria tipoTramo auto
+  where tiempoExtra = tiempoDeCarrera (trayectoria tipoTramo auto) / 2
+
+obstruccion metros trayectoria tipoTramo = alterarDesgaste modificar $ trayectoria tipoTramo
+  where 
+    desgasteRuedasPorObstruccion = metros * 2
+    modificar (ruedas,chasis) = (ruedas + desgasteRuedasPorObstruccion, chasis)
+
+turbo trayectoria tipoTramo auto = alterarVelocidad (\ _ -> velocidadMaxima auto) . trayectoria tipoTramo . alterarVelocidad (*2)$auto
+
+superPista :: Pista
+superPista= Pista "SuperPista" "Argentina" 300 [
+  pasarPorTramo tramoRetroClassic,
+  pasarPorTramo curvaTranca,
+  turbo pasarPorTramo tramito, ---modificado tiene turbo
+  mojado pasarPorTramo tramito, ---modificado esta mojado
+  pasarPorTramo (Rulo 10),
+  (obstruccion 2 . pasarPorTramo) (Curva 80 400), ---modificado con obstrucción de 2m
+  pasarPorTramo (Curva 115 650),
+  pasarPorTramo (Recta 970),
+  pasarPorTramo curvaPeligrosa,
+  ripio pasarPorTramo tramito, --- modificado con ripio
+  boxes pasarPorTramo (Recta 800), 
+  (obstruccion 5 . pasarPorTramo) casiCurva, 
+  pasarPorTramo (ZigZag 2),
+  (ripio . mojado) pasarPorTramo deseoDeMuerte,
+  pasarPorTramo ruloClasico,
+  pasarPorTramo zigZagLoco
+  ]
+
+recorrerTramosConAuto :: [Auto -> Auto] -> Auto -> Auto
+recorrerTramosConAuto tramos auto = foldl (\a f -> f a) auto tramos
+
+recorrerTramosConAuto' = foldl (flip ($))
+
+--- Punto 5
+pasarPorTramo :: TipoTramo -> Auto -> Auto
+pasarPorTramo tramo auto
+  | (not . noDaMas) auto = transitarTramo tramo auto
+  | otherwise = auto
+
+ferrariTest :: Auto
+ferrariTest = Auto "Ferrari" "F50" (80,80) 65 10 ["La nave"]
+-- Auto "Ferrari" "F50" (10,82.6) 65 0 ["La nave"] 0
