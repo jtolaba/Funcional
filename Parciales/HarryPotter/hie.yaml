@@ -1,0 +1,7 @@
+cradle:
+  stack:
+    - path: "./src"
+      component: "HarryPotter:lib"
+
+    - path: "./test"
+      component: "HarryPotter:test:HarryPotter-test"
