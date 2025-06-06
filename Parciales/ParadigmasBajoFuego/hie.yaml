@@ -1,0 +1,7 @@
+cradle:
+  stack:
+    - path: "./src"
+      component: "ParadigmasBajoFuego:lib"
+
+    - path: "./test"
+      component: "ParadigmasBajoFuego:test:ParadigmasBajoFuego-test"
